@@ -6,14 +6,14 @@ build-backend = "setuptools.build_meta"
 name = "portfolio-construction-engine"
 version = "0.1.0"
 description = "Point-in-time portfolio construction: stock-level risk model, constraints, optimization, turnover-aware rebalancing, and backtesting"
-requires-python = ">=3.9"
+requires-python = ">=3.9,<3.13"
 dependencies = [
-    "pandas>=2.0",
-    "numpy>=1.23",
-    "scipy>=1.10",
-    "pyyaml>=6.0",
-    "alpha-validation-toolkit @ git+https://github.com/Patience-Fuglo/alpha-validation-toolkit.git",
-    "factor-model-engine @ git+https://github.com/Patience-Fuglo/factor-model-engine.git",
+    "pandas>=2.0,<4.0",
+    "numpy>=1.23,<3.0",
+    "scipy>=1.10,<2.0",
+    "pyyaml>=6.0,<7.0",
+    "alpha-validation-toolkit @ git+https://github.com/Patience-Fuglo/alpha-validation-toolkit.git@6d2b375f47fc7045d0c4cdb25ae90c9ebd97630d",
+    "factor-model-engine @ git+https://github.com/Patience-Fuglo/factor-model-engine.git@0b9cc0fd7fea8d940080e8210185f370d4a39bc1",
 ]
 
 [project.optional-dependencies]
