@@ -89,6 +89,11 @@ class OptimizationResult:
     converged: bool
     binding_constraints: tuple[str, ...] = field(default_factory=tuple)
     warnings: tuple[str, ...] = field(default_factory=tuple)
+    # Stage 7 addition, defaulted for backward compatibility. The real
+    # estimated transaction cost (as a fraction of portfolio value) of
+    # trading from current_weights to target_weights -- 0.0 when no
+    # TransactionCostModel was supplied, never fabricated otherwise.
+    transaction_cost: float = 0.0
 
     def to_dict(self) -> dict:
         return {
@@ -101,4 +106,5 @@ class OptimizationResult:
             "converged": self.converged,
             "binding_constraints": list(self.binding_constraints),
             "warnings": list(self.warnings),
+            "transaction_cost": self.transaction_cost,
         }

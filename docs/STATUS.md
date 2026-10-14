@@ -129,7 +129,33 @@ synthetic config using the default `restatement_period_index=23`,
 out of bounds for that short a history -- not a bug in either engine,
 just a misconfigured fixture). 42 tests passing (was 40). Pushed.
 
-## Next up: Stage 7 -- Transaction Costs
+## Stage 7 -- Transaction Costs: COMPLETE
 
-Simple, explicit, documented transaction-cost assumptions, applied to
-the turnover already tracked by every `OptimizationResult`.
+Added `backtest/transaction_costs.py` (`TransactionCostModel`): a real,
+deliberately simple linear-cost-per-unit-turnover model, plus an
+optional market-impact term (`coefficient * trade_size^1.5`, 0 by
+default -- a real, honest default rather than an invented impact
+coefficient). Documented explicitly as a simplification: no real
+bid-ask spread, no venue modeling, no participation-rate throttling.
+
+Wired additively into Stage 5's `optimize_portfolio` via a new,
+backward-compatible `cost_model` parameter (default `None`, matching
+every existing call site's prior behavior exactly): when supplied with
+`objective="mean_variance"`, the real estimated cost is SUBTRACTED
+from the optimizer's own utility, so the optimizer genuinely trades
+off expected alpha against the real cost of getting there, not just
+applied after the fact. `OptimizationResult` gains a `transaction_cost`
+field (defaulted to 0.0, backward compatible).
+
+7 new unit tests, including one that directly demonstrates the real
+behavioral effect: with a real alpha edge favoring a trade, a
+high-cost model produces genuinely LESS turnover than no cost model at
+all -- confirming the optimizer is actually using the cost signal, not
+just reporting a number after the fact. 49 tests passing (was 42).
+Pushed.
+
+## Next up: Stage 8 -- Backtest
+
+Forward-apply a rebalancing schedule's real weights, measure realized
+P&L net of transaction costs, reuse `alpha-validation-toolkit`'s
+Sharpe/PSR/DSR for evaluation.

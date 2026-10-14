@@ -103,10 +103,22 @@ def optimize_portfolio(
     constraints: Sequence,
     optimizer_cfg: OptimizerConfig,
     portfolio_id: str = "portfolio",
+    cost_model=None,
 ) -> OptimizationResult:
     """Solve, then independently verify -- the real two-step discipline
     this whole module exists to enforce. ``objective`` is one of
     ``"mean_variance"``, ``"min_variance"``, ``"risk_parity"``.
+
+    ``cost_model`` (Stage 7, optional, defaults to ``None`` -- fully
+    backward compatible with every earlier call site): a real
+    ``TransactionCostModel``. When supplied with ``objective=
+    "mean_variance"``, its estimated cost is subtracted from the
+    optimizer's own utility, so the optimizer genuinely trades off
+    expected alpha against the real cost of getting there -- not
+    applied only after the fact. For ``min_variance``/``risk_parity``,
+    the cost model is used only to report the real estimated
+    ``transaction_cost`` on the result; those objectives don't have an
+    expected-return term for a cost to trade off against.
     """
     if objective not in _OBJECTIVES:
         raise ValueError(f"unknown objective {objective!r}, must be one of {sorted(_OBJECTIVES)}")
@@ -118,7 +130,10 @@ def optimize_portfolio(
 
     if objective == "mean_variance":
         def scipy_objective(w):
-            return mean_variance_objective(w, expected_returns, covariance, optimizer_cfg.risk_aversion)
+            utility = mean_variance_objective(w, expected_returns, covariance, optimizer_cfg.risk_aversion)
+            if cost_model is not None:
+                utility += cost_model.estimate_cost(array_to_weights(w, security_ids), opt_input.current_weights, security_ids)
+            return utility
     elif objective == "min_variance":
         def scipy_objective(w):
             return min_variance_objective(w, covariance)
@@ -166,6 +181,9 @@ def optimize_portfolio(
     expected_return = float(solver_result.x @ expected_returns)
     expected_variance = float(solver_result.x @ covariance @ solver_result.x)
     turnover = float(np.sum(np.abs(solver_result.x - np.array([opt_input.current_weight(sid) for sid in security_ids]))))
+    transaction_cost = (
+        cost_model.estimate_cost(target_weights, opt_input.current_weights, security_ids) if cost_model is not None else 0.0
+    )
 
     return OptimizationResult(
         as_of=opt_input.as_of,
@@ -175,6 +193,7 @@ def optimize_portfolio(
         expected_variance=expected_variance,
         turnover=turnover,
         converged=converged,
+        transaction_cost=transaction_cost,
         # a real, honest simplification: when NOT converged, these are
         # the VIOLATED constraint names (for triage), not genuinely
         # "active but satisfied" ones -- detecting a truly binding (at
