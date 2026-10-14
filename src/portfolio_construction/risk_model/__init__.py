@@ -1,3 +1,3 @@
-"""risk_model -- implemented in a later stage. Stage 1 only establishes the
-repository structure and the schemas/conventions this module will
-build on (see src/portfolio_construction/data/schemas.py)."""
+from .stock_covariance import build_exposure_matrix, build_stock_covariance_matrix
+
+__all__ = ["build_exposure_matrix", "build_stock_covariance_matrix"]
