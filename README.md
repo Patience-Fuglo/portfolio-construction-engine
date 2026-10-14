@@ -7,14 +7,16 @@ risk-parity optimizer with genuine post-solve convergence
 verification, turnover-aware rebalancing, transaction costs, and a
 backtesting harness.
 
-**Stages 1–3 of 10 are complete**: schemas (`OptimizationInput`/
+**Stages 1–4 of 10 are complete**: schemas (`OptimizationInput`/
 `OptimizationResult`), config, dependency wiring to
 `factor-model-engine` and `alpha-validation-toolkit`, a real
 stock-level risk model built directly from factor-model-engine's own
-factor covariance and specific-risk outputs, and five composable
-real constraint types (position, sector, factor-exposure, turnover,
-gross leverage). See [`docs/STATUS.md`](docs/STATUS.md) for
-stage-by-stage build status.
+factor covariance and specific-risk outputs, five composable real
+constraint types (position, sector, factor-exposure, turnover, gross
+leverage), and real mean-variance/min-variance/risk-parity objective
+functions (the risk-parity one directly ports a real bug fix from this
+account's `systematic-equity-research` repo). See
+[`docs/STATUS.md`](docs/STATUS.md) for stage-by-stage build status.
 
 ## Relationship to this portfolio's other repos
 

@@ -48,6 +48,31 @@ a solver's own `success` flag alone.
 magnitude and the aggregate `check_all` path. 23 tests passing (was
 14). Pushed.
 
-## Next up: Stage 4 -- Objectives
+## Stage 4 -- Objectives: COMPLETE
 
-Mean-variance, risk-parity/ERC, and min-variance objective functions.
+Added `optimization/objectives.py`: numpy-vectorized `mean_variance_objective`,
+`min_variance_objective`, `risk_parity_objective` (and the shared
+`portfolio_variance`/`risk_contributions`/`weights_to_array`/
+`array_to_weights` helpers Stage 5's optimizer will reuse).
+
+`risk_parity_objective` directly ports the real fix from this
+account's `systematic-equity-research` risk-parity optimizer bug: a
+RELATIVE objective (`sum((contribution/target - 1)^2)`), never an
+absolute squared difference, whose real scale could let a solver
+falsely report convergence at the unconverged starting guess.
+`is_risk_parity_converged` is the independent, real post-solve
+verification that bug fix also required -- checking ACTUAL risk
+contributions directly, never inferred from a solver's own `success`
+flag or the objective value alone.
+
+10 new unit tests, including one that directly reconstructs the exact
+historical bug scenario (equal weights on an unequal-variance diagonal
+covariance correctly fails convergence) and one that accepts the real
+analytic risk-parity solution for a diagonal covariance. 33 tests
+passing (was 23). Pushed.
+
+## Next up: Stage 5 -- Optimizer
+
+A QP solver wrapper (`scipy.optimize`) that actually calls
+`constraints.check_all` after solving -- real convergence, not a
+blind pass-through of the solver's own `success` flag.
