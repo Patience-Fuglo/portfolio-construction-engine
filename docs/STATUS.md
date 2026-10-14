@@ -178,7 +178,22 @@ direct, real demonstration that a costed rebalancing schedule's
 cumulative net return comes out genuinely lower than the same schedule
 run with no cost model at all. 57 tests passing (was 49). Pushed.
 
-## Next up: Stage 9 -- Reporting
+## Stage 9 -- Reporting: COMPLETE
 
-One reproducible JSON/Markdown report tying the whole engine
-together, mirroring `factor-model-engine`'s own Stage 9.
+Added `reporting/report.py` (`report_to_dict`/`render_markdown_report`):
+both derived from the SAME real `RebalancingSchedule` (Stage 6) and
+`BacktestResult` (Stage 8) -- no new orchestration layer needed, since
+`rebalancing/rebalancer.py` already fulfills that role (unlike
+factor-model-engine, which needed a dedicated `pipeline/` module).
+Mirrors factor-model-engine's own Stage 9 reporting convention.
+
+4 new integration tests on the real synthetic dataset: JSON
+serializability, reconciliation against the real underlying schedule/
+backtest objects, every real section present in the rendered
+Markdown, and deterministic rendering across two calls. 61 tests
+passing (was 57). Pushed.
+
+## Next up: Stage 10 -- Hardening
+
+The comprehensive point-in-time check and full CLI-chain test,
+mirroring `factor-model-engine`'s own Stage 10.
