@@ -7,18 +7,15 @@ risk-parity optimizer with genuine post-solve convergence
 verification, turnover-aware rebalancing, transaction costs, and a
 backtesting harness.
 
-**Stages 1–5 of 10 are complete**: schemas (`OptimizationInput`/
-`OptimizationResult`), config, dependency wiring to
-`factor-model-engine` and `alpha-validation-toolkit`, a real
-stock-level risk model built directly from factor-model-engine's own
-factor covariance and specific-risk outputs, five composable real
-constraint types (position, sector, factor-exposure, turnover, gross
-leverage), real mean-variance/min-variance/risk-parity objective
-functions, and a `scipy.optimize`-based solver that NEVER trusts the
-solver's own `success` flag -- every solve is independently
-re-verified against the actual constraints and (for risk parity) the
-actual risk contributions. See [`docs/STATUS.md`](docs/STATUS.md) for
-stage-by-stage build status.
+**Stages 1–6 of 10 are complete**: schemas, config, dependency wiring
+to `factor-model-engine` and `alpha-validation-toolkit`, a real
+stock-level risk model, five composable real constraint types, real
+mean-variance/min-variance/risk-parity objectives, a `scipy.optimize`-
+based solver that never trusts the solver's own `success` flag, and
+turnover-aware rebalancing across a real date range that re-estimates
+the whole risk model at each date using only trailing (never future)
+history. See [`docs/STATUS.md`](docs/STATUS.md) for stage-by-stage
+build status.
 
 ## Relationship to this portfolio's other repos
 

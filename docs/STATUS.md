@@ -105,6 +105,31 @@ genuinely active-but-feasible ones -- a real margin-based "is this
 constraint exactly at its limit" check is left for a later refinement,
 not claimed now.
 
-## Next up: Stage 6 -- Rebalancing
+## Stage 6 -- Rebalancing: COMPLETE
 
-Turnover-aware rebalancing across a real date range, point-in-time safe.
+Added `rebalancing/rebalancer.py` (`run_rebalancing_schedule`): at
+each real rebalance date, re-estimates the whole risk model (factor
+exposures, factor covariance, specific risk) using only
+`lookback_periods` of REAL trailing history ending at that date --
+never a later one -- rebuilds the stock covariance matrix, calls the
+real optimizer, and carries the result's target weights forward as
+the NEXT rebalance's real pre-trade weights, so turnover constraints
+see genuine trading continuity rather than a fresh start every time.
+
+Alpha (expected returns) is deliberately an explicit per-date input
+(`ExpectedReturnsSource`), not generated here -- signal research is a
+different repo's real job; this engine takes it as given.
+
+2 new integration tests on the real synthetic dataset: a real
+quarterly schedule (confirming the first rebalance's turnover equals a
+full build-from-nothing, and every rebalance converges) and a real
+insufficient-history case (warns per-date rather than crashing). One
+real test-fixture mistake caught and fixed along the way (a 5-period
+synthetic config using the default `restatement_period_index=23`,
+out of bounds for that short a history -- not a bug in either engine,
+just a misconfigured fixture). 42 tests passing (was 40). Pushed.
+
+## Next up: Stage 7 -- Transaction Costs
+
+Simple, explicit, documented transaction-cost assumptions, applied to
+the turnover already tracked by every `OptimizationResult`.
