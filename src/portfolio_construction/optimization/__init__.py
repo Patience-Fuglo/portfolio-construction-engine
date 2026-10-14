@@ -9,6 +9,7 @@ from .objectives import (
     risk_parity_objective,
     weights_to_array,
 )
+from .optimizer import optimize_portfolio
 
 __all__ = [
     "weights_to_array",
@@ -20,4 +21,5 @@ __all__ = [
     "risk_contributions",
     "risk_parity_objective",
     "is_risk_parity_converged",
+    "optimize_portfolio",
 ]

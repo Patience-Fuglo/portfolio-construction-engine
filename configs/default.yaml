@@ -12,3 +12,6 @@ risk_model:
 optimizer:
   risk_aversion: 5.0                     # RESEARCH ASSUMPTION
   constraint_tolerance: 1.0e-6           # RESEARCH ASSUMPTION
+  target_net_exposure: 1.0               # RESEARCH ASSUMPTION
+  risk_parity_tolerance: 0.05            # RESEARCH ASSUMPTION
+  max_iterations: 500                    # RESEARCH ASSUMPTION

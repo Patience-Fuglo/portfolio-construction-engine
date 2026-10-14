@@ -71,8 +71,40 @@ covariance correctly fails convergence) and one that accepts the real
 analytic risk-parity solution for a diagonal covariance. 33 tests
 passing (was 23). Pushed.
 
-## Next up: Stage 5 -- Optimizer
+## Stage 5 -- Optimizer: COMPLETE
 
-A QP solver wrapper (`scipy.optimize`) that actually calls
-`constraints.check_all` after solving -- real convergence, not a
-blind pass-through of the solver's own `success` flag.
+Added `optimization/optimizer.py` (`optimize_portfolio`): `scipy.optimize.
+minimize` (SLSQP) wrapped around the three Stage 4 objectives, with
+real per-type scipy constraint translation (position limits become
+bounds; sector/factor/turnover/leverage become inequality constraints;
+a fully-invested or dollar-neutral equality constraint via
+`OptimizerConfig.target_net_exposure`).
+
+**The central discipline, enforced directly, not just documented:**
+after the solver returns, `OptimizationResult.converged` is set from
+an INDEPENDENT real check -- `constraints.check_all` against the
+actual returned weights, plus `is_risk_parity_converged` for the
+risk-parity objective -- never from `scipy`'s own `success` flag. Both
+real disagreement directions are explicitly warned about: a scipy
+"success" that the independent check finds infeasible (the exact
+historical failure mode), and a scipy "failure" that the independent
+check finds genuinely feasible anyway.
+
+6 new unit tests, including one that reconstructs a real infeasible
+constraint combination (`max_position_weight=0.3` over 2 long-only
+securities makes the fully-invested equality mathematically
+impossible) and confirms the optimizer correctly reports non-convergence
+rather than returning an infeasible "solution" silently. Plus a
+cross-repo integration test: min-variance optimization against a
+stock covariance matrix built directly from factor-model-engine's own
+real pipeline output. 40 tests passing (was 33).
+
+One documented, honest simplification: `binding_constraints` reports
+VIOLATED constraint names when not converged (for triage), not
+genuinely active-but-feasible ones -- a real margin-based "is this
+constraint exactly at its limit" check is left for a later refinement,
+not claimed now.
+
+## Next up: Stage 6 -- Rebalancing
+
+Turnover-aware rebalancing across a real date range, point-in-time safe.

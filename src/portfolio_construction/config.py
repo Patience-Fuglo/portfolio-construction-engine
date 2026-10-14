@@ -40,12 +40,24 @@ class OptimizerConfig:
     # violated before the optimizer's post-solve verification flags
     # non-convergence, rather than trusting the solver's own success flag
     constraint_tolerance: float = 1.0e-6
+    # RESEARCH ASSUMPTION -- sum(weights) target: 1.0 = fully-invested
+    # long-only (the default convention); 0.0 would be a dollar-neutral
+    # long/short book instead
+    target_net_exposure: float = 1.0
+    # RESEARCH ASSUMPTION -- relative tolerance for is_risk_parity_converged
+    risk_parity_tolerance: float = 0.05
+    # RESEARCH ASSUMPTION -- scipy.optimize.minimize's own max iterations
+    max_iterations: int = 500
 
     def __post_init__(self) -> None:
         if self.risk_aversion <= 0:
             raise ValueError("risk_aversion must be positive")
         if self.constraint_tolerance <= 0:
             raise ValueError("constraint_tolerance must be positive")
+        if self.risk_parity_tolerance <= 0:
+            raise ValueError("risk_parity_tolerance must be positive")
+        if self.max_iterations < 1:
+            raise ValueError("max_iterations must be >= 1")
 
 
 @dataclass(frozen=True)
