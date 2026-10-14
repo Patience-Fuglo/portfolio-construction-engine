@@ -1,0 +1,14 @@
+# Engine-wide configuration. Every field tagged RESEARCH ASSUMPTION in
+# docs/research_assumptions.md needs the researcher's explicit sign-off --
+# these are modeling choices, not safe engineering defaults.
+
+run:
+  output_dir: "outputs"
+  random_seed: 1337
+
+risk_model:
+  min_specific_variance: 1.0e-6          # RESEARCH ASSUMPTION
+
+optimizer:
+  risk_aversion: 5.0                     # RESEARCH ASSUMPTION
+  constraint_tolerance: 1.0e-6           # RESEARCH ASSUMPTION

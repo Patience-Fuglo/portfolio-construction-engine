@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "portfolio-construction-engine"
+version = "0.1.0"
+description = "Point-in-time portfolio construction: stock-level risk model, constraints, optimization, turnover-aware rebalancing, and backtesting"
+requires-python = ">=3.9"
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.23",
+    "scipy>=1.10",
+    "pyyaml>=6.0",
+    "alpha-validation-toolkit @ git+https://github.com/Patience-Fuglo/alpha-validation-toolkit.git",
+    "factor-model-engine @ git+https://github.com/Patience-Fuglo/factor-model-engine.git",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: exercises real CLI subprocesses end to end; still run by default, just slower than the rest of the suite",
+]
