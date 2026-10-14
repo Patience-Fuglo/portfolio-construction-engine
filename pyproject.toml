@@ -24,5 +24,5 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 markers = [
-    "slow: exercises real CLI subprocesses end to end; still run by default, just slower than the rest of the suite",
+    "slow: exercises real CLI subprocesses or multi-stage pipelines end to end; still run by default, just slower than the rest of the suite",
 ]

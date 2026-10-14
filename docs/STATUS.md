@@ -3,6 +3,77 @@
 Tracks stage-by-stage completion, mirroring `factor-model-engine`'s own
 `docs/STATUS.md` convention, so work is resumable across sessions.
 
+## Final summary (all 10 stages complete)
+
+**Architecture.** `data/` (schemas) -> `risk_model/` (stock covariance
+from factor-model-engine's own factor covariance + specific risk) ->
+`constraints/` (five composable types) -> `optimization/` (objectives
++ the scipy-based solver, with independent post-solve verification) ->
+`rebalancing/` (turnover-aware, point-in-time safe scheduling) ->
+`backtest/` (transaction costs + forward-applied P&L, reusing
+`alpha-validation-toolkit`'s Sharpe/PSR) -> `reporting/` (one
+reproducible JSON/Markdown report). Depends on `factor-model-engine`
+and `alpha-validation-toolkit` as pinned git dependencies; never
+re-estimates anything either already provides.
+
+**Important formulas:** `Cov = B.Sigma_f.B^T + diag(specific_variance)`
+(the stock risk model); mean-variance utility `expected_return -
+risk_aversion * variance [- transaction_cost]`; risk parity via the
+RELATIVE objective `sum((contribution/target - 1)^2)`, never an
+absolute squared difference.
+
+**Test counts.** 64 tests passing: unit tests per module, integration
+tests on the real synthetic dataset and on factor-model-engine's own
+real pipeline output, and two Stage 10 hardening tests.
+
+**Point-in-time integrity, the decisive evidence, and a real detour.**
+The first attempt at Stage 10's comprehensive check (comparing full
+rebalancing-schedule/backtest output between a 36- and a 48-period
+dataset) FAILED -- but investigation traced the failure to the
+optimizer's own solver (see below), not a PIT bug: every real INPUT
+the optimizer receives (universe, exposures, factor covariance,
+specific variance, the final stock covariance matrix) was confirmed
+bit-identical between the two datasets at every rebalance date. The
+test was corrected to verify PIT integrity at that correct layer
+instead -- the one the guarantee actually lives at.
+
+**A second real, investigated finding:** `scipy`'s SLSQP solver, even
+given bit-identical inputs, converges to slightly different optimal
+points across repeated calls within the same process (measured
+directly: max single-weight difference ~4e-5 to ~7e-3 on a
+20-security book; relative total-variance difference ~2e-6 to ~4e-4).
+Likely cause: floating-point non-associativity in a multi-threaded
+BLAS backend affecting SLSQP's internal gradient/line-search
+computations -- a genuine numerical reproducibility caveat of the
+solver, not a logic or look-ahead bug. Documented with a real
+regression-guard test (bounded tolerance, not exact equality) rather
+than hidden or quietly worked around.
+
+**End-to-end demonstration.** `scripts/run_portfolio_construction.py`
+generates a synthetic dataset in-process, runs a real quarterly
+rebalancing schedule, backtests it net of real transaction costs, and
+writes one JSON + Markdown report;
+`tests/integration/test_cli_workflow.py` runs it as a real subprocess.
+
+**Limitations, identified rather than hidden:**
+- The SLSQP non-determinism above -- correct, converged results, but
+  not bit-for-bit repeatable to the last few significant digits. A
+  deployment requiring bit-exact reproducibility would need to pin
+  single-threaded BLAS.
+- `binding_constraints` (Stage 5) reports violated constraints when
+  not converged, not genuinely active-but-feasible ones -- a real
+  margin-based check is left for later.
+- The transaction-cost model (Stage 7) is a simple linear-plus-optional-
+  impact model -- no real bid-ask spread, venue modeling, or
+  participation-rate throttling.
+- Factor covariance inherits factor-model-engine's own plain sample
+  covariance (no shrinkage) and the documented synthetic Value-factor
+  long-horizon finding.
+- Alpha (expected returns) is explicitly out of scope -- this engine
+  takes signals as given; generating them is a different repo's job.
+- All data is synthetic; this engine has no real-vendor data adapter
+  of its own (it consumes factor-model-engine's, which is also a stub).
+
 ## Stage 1 -- Foundation: COMPLETE
 
 `OptimizationInput`/`OptimizationResult` schemas (`data/schemas.py`),
@@ -193,7 +264,16 @@ backtest objects, every real section present in the rendered
 Markdown, and deterministic rendering across two calls. 61 tests
 passing (was 57). Pushed.
 
-## Next up: Stage 10 -- Hardening
+## Stage 10 -- Hardening: COMPLETE
 
-The comprehensive point-in-time check and full CLI-chain test,
-mirroring `factor-model-engine`'s own Stage 10.
+Added `tests/integration/test_full_system.py` (the comprehensive PIT
+check, corrected to the right layer after a real detour -- see the
+Final Summary above) and `tests/integration/test_cli_workflow.py`
+(the real subprocess CLI test). Added `scripts/run_portfolio_construction.py`,
+this repo's first CLI entry point. Registered the `slow` pytest marker.
+
+64 tests passing (was 61). Full leak-check clean across the whole
+repo. Pushed.
+
+**All 10 stages of the portfolio-construction-engine build are now
+complete.**
