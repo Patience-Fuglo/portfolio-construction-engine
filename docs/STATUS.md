@@ -154,8 +154,31 @@ all -- confirming the optimizer is actually using the cost signal, not
 just reporting a number after the fact. 49 tests passing (was 42).
 Pushed.
 
-## Next up: Stage 8 -- Backtest
+## Stage 8 -- Backtest: COMPLETE
 
-Forward-apply a rebalancing schedule's real weights, measure realized
-P&L net of transaction costs, reuse `alpha-validation-toolkit`'s
-Sharpe/PSR/DSR for evaluation.
+Added `backtest/backtest.py` (`run_backtest`): forward-applies a real
+rebalancing schedule's target weights, holding each one from its own
+`as_of` to the next, computing the real weighted realized return per
+period via factor-model-engine's own point-in-time
+`_period_realized_returns` (never re-derived), net of the real
+`transaction_cost` already reported on the rebalance that established
+those weights. Reuses `alpha-validation-toolkit`'s real
+`sharpe_ratio`/`probabilistic_sharpe_ratio` for evaluation -- neither
+reimplemented.
+
+`rebalancing/rebalancer.py` extended (additively, backward compatible)
+with a `cost_model` parameter, threaded straight through to
+`optimize_portfolio` at every rebalance date, so a real cost model
+applies consistently across a whole schedule.
+
+6 new unit tests (including a security with no real price at either
+end of a period correctly excluded, never treated as a 0% return) and
+2 integration tests on the real synthetic dataset -- including a
+direct, real demonstration that a costed rebalancing schedule's
+cumulative net return comes out genuinely lower than the same schedule
+run with no cost model at all. 57 tests passing (was 49). Pushed.
+
+## Next up: Stage 9 -- Reporting
+
+One reproducible JSON/Markdown report tying the whole engine
+together, mirroring `factor-model-engine`'s own Stage 9.

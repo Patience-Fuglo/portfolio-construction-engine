@@ -52,6 +52,7 @@ def run_rebalancing_schedule(
     fm_engine_cfg: FactorModelConfig,
     pc_engine_cfg: EngineConfig,
     portfolio_id: str = "portfolio",
+    cost_model=None,
 ) -> RebalancingSchedule:
     """At each sorted ``rebalance_date``: build the real point-in-time
     universe and factor exposures AS OF that date, estimate the factor
@@ -59,7 +60,10 @@ def run_rebalancing_schedule(
     dates immediately preceding and including it (never a later one),
     build the stock covariance matrix, call the real optimizer, and
     carry its target weights forward as the NEXT rebalance's real
-    pre-trade (current) weights.
+    pre-trade (current) weights. ``cost_model`` (Stage 7, optional) is
+    passed straight through to ``optimize_portfolio`` at every
+    rebalance date -- the same real transaction-cost model applies
+    consistently across the whole schedule, not reconstructed per call.
     """
     schedule = RebalancingSchedule()
     all_market_dates = sorted({obs.as_of for obs in market_observations})
@@ -95,7 +99,7 @@ def run_rebalancing_schedule(
         )
         constraints = constraints_factory(rebalance_date, exposure_matrix)
 
-        result = optimize_portfolio(opt_input, objective, constraints, pc_engine_cfg.optimizer, portfolio_id)
+        result = optimize_portfolio(opt_input, objective, constraints, pc_engine_cfg.optimizer, portfolio_id, cost_model=cost_model)
         schedule.results.append(result)
         schedule.warnings_by_date[rebalance_date] = list(return_warnings) + list(factor_cov_result.warnings) + list(covariance_warnings)
         current_weights = result.target_weights
