@@ -30,7 +30,24 @@ pipeline output (universe, exposures, factor returns, factor
 covariance, specific risk) on its synthetic dataset -- not a hand-built
 stand-in for the dependency. 14 tests passing (was 8). Pushed.
 
-## Next up: Stage 3 -- Constraints
+## Stage 3 -- Constraints: COMPLETE
 
-Position/sector/factor-exposure/turnover/leverage limits, composable
-and independently testable.
+Added `constraints/constraints.py`: five real, composable constraint
+types -- `MaxPositionWeightConstraint`, `SectorExposureConstraint`,
+`FactorExposureConstraint` (using `risk_model.build_exposure_matrix`'s
+own output, never re-derived), `TurnoverConstraint`, and
+`GrossLeverageConstraint` -- each implementing the same
+`check(weights, opt_input) -> list[ConstraintViolation]` interface,
+plus `check_all` to run every constraint and flatten the result. An
+empty list means genuinely satisfied within tolerance, not merely "the
+solver didn't complain" -- this is the exact function Stage 5's
+optimizer will call for real post-solve verification, never trusting
+a solver's own `success` flag alone.
+
+9 new unit tests covering every constraint type's real violation
+magnitude and the aggregate `check_all` path. 23 tests passing (was
+14). Pushed.
+
+## Next up: Stage 4 -- Objectives
+
+Mean-variance, risk-parity/ERC, and min-variance objective functions.
